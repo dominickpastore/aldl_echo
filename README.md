@@ -1,11 +1,13 @@
 ALDL Echo
 =========
 
-A simple python program to echo data read from the ALDL port of an old Suburban.
+A simple Python program to echo data read from the ALDL port of an old Suburban.
 
 The Suburban this was written for is a 1994 1/2 ton model with the L05 engine
 (5.7L V8 TBI, VIN=K) and 4L60E transmission. As far as I can tell, it uses data
 streams A217 and A218.
+
+This program requires Python 3 and PySerial.
 
 A Quick Background
 ------------------
