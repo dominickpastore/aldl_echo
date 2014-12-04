@@ -41,7 +41,7 @@ are some 200-something versions, depending on the make, model year, engine type,
 etc. Furthermore, it seems some cars may have multiple streams for different
 parts (perhaps one for the engine and one for the transmission, for example).
 Documentation on which streams go with which car can be found online. The best I
-have found is in the "ALDLstuff.rar" archive, from [this forum post](http://www.mp3car.com/engine-management-obd-ii-engine-diagnostics-etc/104591-gm-aldl-protocols-description-from-gm-guy.html).
+have found is in the "ALDLstuff.rar" archive, from [this forum post][1].
 Each "Axxx.DS" file documents one data stream format. The other files in the
 archive describe general details on the serial protocol (e.g. voltages) and
 which data stream goes with what car. It seems my Suburban uses streams A217 and
@@ -49,16 +49,21 @@ A218.
 
 As it so happens, an FT232RL chip can be made to successfully communicate
 with the ECM by wiring its RX and TX lines together to pin M on the ALDL
-connector and tying its ground to pin A. Boards like the FTDI Friend from
-Adafruit or FTDI Basic from SparkFun have these signals conveniently broken out,
+connector and tying its ground to pin A. Boards like the [FTDI Friend][2] from
+Adafruit (be sure to solder the 5V jumper and cut the 3.3V one) or [FTDI Basic 5V][3] from SparkFun have these signals conveniently broken out,
 making it relatively easy to fashion an inexpensive sort of USB ALDL cable.
 Prebuilt USB cables are also readily available for purchase online, but tend to
 be fairly expensive (maybe $60).
 
-There are already Windows programs out there that can make use of such a setup
+There are already [Windows programs][4] out there that can make use of such a setup
 to gather and log real-time data from the engine, but most, if not all, are
 closed source and not available for other OS's. Hence this program: an effort to
 produce open-source code that can parse the ALDL data stream.
+
+[1]: http://www.mp3car.com/engine-management-obd-ii-engine-diagnostics-etc/104591-gm-aldl-protocols-description-from-gm-guy.html) "ALDL Data Streams"
+[2]: https://www.adafruit.com/products/284 "FTDI Friend"
+[3]: https://www.sparkfun.com/products/9716 "FTDI Basic 5V"
+[4]: http://aldlcable.com/diagnosticsoftware.asp "ALDL Software"
 
 ------------------------------------------------------------------------
 
