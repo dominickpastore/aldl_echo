@@ -26,9 +26,16 @@
 
 import sys
 from time import sleep
+from collections import OrderedDict
 import serial
 
+#A217 = OrderedDict()
+#A217["PROMIDA"] = "FIRST PROM I.D. WORD (MSB)"
+#A217["PROMIDA+1"] = "SECOND PROM I.D. WORD (LSB)"
+
 # From here on, "s" is always the serial object for the ALDL link.
+def parse_data(msg_body):
+    pass
 
 def message_recv(s):
     """Wait for a valid message, then return its contents
@@ -102,6 +109,13 @@ def message_send(s, msg_id, msg_mode, msg_body):
 
     s.write(msg)
 
+def print_formatted(msg):
+    print("ID:    {:#02x}".format(msg[0]))
+    print("Mode:  {:#02x}".format(msg[1]))
+    print("Body:")
+    for i in range(len(msg[2])):
+        print("   {0:3d}:  {1:#02x}  {1:#08b}  {1:3d}".format(i, msg[2][i]))
+
 # This function should be called with an open serial object. It starts with
 # the actual communication and echoing.
 def parse_stream(s):
@@ -123,7 +137,9 @@ def parse_stream(s):
             #sleep(0.2)
             #message_send(s, 0xf5, 0x01, b'\x01')
 
-            print(message_recv(s))
+            new_msg = message_recv(s)
+            print("\n### New Message ###")
+            print_formatted(new_msg)
     except KeyboardInterrupt:
         print("Stopping...", file=sys.stderr)
 
