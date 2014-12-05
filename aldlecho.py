@@ -134,7 +134,8 @@ def print_formatted(msg):
     print("Mode:  {:#04x}".format(msg[1]))
     print("Body:")
     for i in range(len(msg[2])):
-        print("   {0:3d}:  {1:#04x}  {1:#010b}  {1:3d}".format(i, msg[2][i]))
+        print("   {0:3d}:  {1:#04x}  {2:04b} {3:04b}  {1:3d}".format(i,
+            msg[2][i], msg[2][i] & 0x0f, msg[2][i] >> 4))
 
 # This function should be called with an open serial object. It starts with
 # the actual communication and echoing.
