@@ -123,8 +123,8 @@ def print_formatted(msg):
 # the actual communication and echoing.
 def parse_stream(s):
     #s.write(b'\xf4\x57\x01\x00\xb3')
-    #message_send(s, 0xf4, 0x01, b'\x00')
-    message_send(s, 0xf5, 0x01, b'\x00')
+    message_send(s, 0xf4, 0x01, b'\x00')
+    #message_send(s, 0xf5, 0x01, b'\x00')
     #message_send(s, 0xf5, 0x01, b'\x01')
 
     try:
@@ -145,6 +145,9 @@ def parse_stream(s):
             print_formatted(new_msg)
     except KeyboardInterrupt:
         print("Stopping...", file=sys.stderr)
+
+    # Restore normal mode
+    message_send(s, 0xf4, 0x00, "")
 
 def main(serial_port):
     try:
