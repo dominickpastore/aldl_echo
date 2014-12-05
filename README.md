@@ -1,19 +1,42 @@
 ALDL Echo
 =========
 
-A simple Python program to echo data read from the ALDL port of an old Suburban.
+A simple Python program to echo data read from the ALDL port on old GM cars. 
 
-The Suburban this was written for is a 1994 1/2 ton model with the L05 engine
-(5.7L V8 TBI, VIN=K) and 4L60E transmission. As far as I can tell, it uses data
-streams A217 and A218.
+This program was written specifically for my Suburban (a 1994 1/2 model with the
+L05 engine (5.7L V8 TBI, VIN=K) and 4L60E transmission). Out of the box, only
+cars very similar to it will be supported. That being said, as long as your car
+uses the 8192 baud variant of ALDL, it should take little effort to add support
+for it. See "Data Streams" for how to do that. If your car only uses the 160
+baud variant of ALDL, unfortunately, this program cannot easily support your car
+as is (though with more effort, and the will to dive into a bit of programming, 
+it's still very possible. The documentation is here).
+
+If none of the above makes sense to you, try reading the rest of this README,
+which explains more about ALDL.
+
+Even if all of the above makes sense to you, you should read the rest of this
+README. It contains useful information.
+
+Prerequisites and Limitations
+-----------------------------
 
 This program requires Python 3 and PySerial.
+
+Note that this program requires at least one data stream definition file that
+is appropriate for your car in order to work properly. Defintions are already
+included for the Suburban I wrote this for (A217 and A218). If your car uses a
+data stream other than A217 or A218, you'll need to create a definition file
+for it. See "Data Streams" for more information.
+
+Data Streams
+------------
 
 A Quick Background
 ------------------
 
 **Disclaimer: My area of expertise is computer science, not cars. All
-information that follows is the result of copious Googling. I cannot be held
+information in this README is the result of copious Googling. I cannot be held
 responsible for any injury, damage, or loss of life or property that results
 from the contents of this file, or mistakes it may contain.**
 
