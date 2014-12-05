@@ -66,6 +66,7 @@ def message_recv(s):
         for b in msg_body:
             checksum += b
 
+        checksum = (-checksum) & 0xff
         checksum_in = s.read()[0]
 
         if checksum != checksum_in:
@@ -105,9 +106,11 @@ def message_send(s, msg_id, msg_mode, msg_body):
         checksum = (checksum + b)
 
     # Checksum is 1's compliment of sum of all bytes in the message
-    msg.append(~checksum & 0xff)
+    msg.append((-checksum) & 0xff)
 
     s.write(msg)
+    #DEBUG
+    #print("@@@ 1", repr(msg), file=sys.stderr)
 
 def print_formatted(msg):
     print("ID:    {:#02x}".format(msg[0]))
@@ -119,9 +122,9 @@ def print_formatted(msg):
 # This function should be called with an open serial object. It starts with
 # the actual communication and echoing.
 def parse_stream(s):
-    #s.write(b'\xf4\x57\x01\x00\xb4')
-    message_send(s, 0xf4, 0x01, b'\x00')
-    #message_send(s, 0xf5, 0x01, b'\x00')
+    #s.write(b'\xf4\x57\x01\x00\xb3')
+    #message_send(s, 0xf4, 0x01, b'\x00')
+    message_send(s, 0xf5, 0x01, b'\x00')
     #message_send(s, 0xf5, 0x01, b'\x01')
 
     try:
