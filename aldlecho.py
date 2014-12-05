@@ -24,9 +24,26 @@
 # THE SOFTWARE.
 #
 
+#TODO
+#Use getopt
+#Add options for help and version
+#Make it read from a definition file
+
+#TODO definition file
+# Definition file could be a bunch of lines, each with the "DATA NAME" and
+# "DESCRIPTION". If a word has descriptions for each bit, just leave the "DATA
+# NAME" part of the next 8 lines blank. The program can recognize leading
+# whitespace and know they're bit descriptions.
+# The file can start with the message ID for this data stream and the mode and
+# message_body to get the ECM in and out of data transmission mode
+# Maybe have a way to include multiple transmit modes in one data stream? Or
+# even multiple data streams in a file?
+# The program will know which data stream to use based on a) the message ID and
+# b) the message length (and maybe c) the mode)
+
 import sys
 from time import sleep
-from collections import OrderedDict
+#from collections import OrderedDict
 import serial
 
 #A217 = OrderedDict()
