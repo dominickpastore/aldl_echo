@@ -130,11 +130,11 @@ def message_send(s, msg_id, msg_mode, msg_body):
     #print("@@@ 1", repr(msg), file=sys.stderr)
 
 def print_formatted(msg):
-    print("ID:    {:#02x}".format(msg[0]))
-    print("Mode:  {:#02x}".format(msg[1]))
+    print("ID:    {:#04x}".format(msg[0]))
+    print("Mode:  {:#04x}".format(msg[1]))
     print("Body:")
     for i in range(len(msg[2])):
-        print("   {0:3d}:  {1:#02x}  {1:#08b}  {1:3d}".format(i, msg[2][i]))
+        print("   {0:3d}:  {1:#04x}  {1:#010b}  {1:3d}".format(i, msg[2][i]))
 
 # This function should be called with an open serial object. It starts with
 # the actual communication and echoing.
@@ -146,15 +146,15 @@ def parse_stream(s):
 
     try:
         while True:
-            #sleep(0.2)
+            #sleep(1)
             #message_send(s, 0xf4, 0x01, b'\x00')
             #print(message_recv(s))
 
-            #sleep(0.2)
+            #sleep(1)
             #message_send(s, 0xf5, 0x01, b'\x00')
             #print(message_recv(s))
 
-            #sleep(0.2)
+            #sleep(1)
             #message_send(s, 0xf5, 0x01, b'\x01')
 
             new_msg = message_recv(s)
@@ -164,7 +164,7 @@ def parse_stream(s):
         print("Stopping...", file=sys.stderr)
 
     # Restore normal mode
-    message_send(s, 0xf4, 0x00, "")
+    message_send(s, 0xf4, 0x00, b'')
 
 def main(serial_port):
     try:
