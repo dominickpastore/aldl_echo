@@ -1,0 +1,432 @@
+# --- General syntax information ---
+#
+# Lines with a hash symbol as the first non-whitespace character are comments.
+# Comments and blank lines (including lines with only whitespace) are ignored.
+#
+# All values in this file are either integers or strings. If more than one
+# appear on the same line, they must be separated by whitespaces.
+#
+# Integers (including bytes of data) can be written in decimal, hexadecimal, or
+# octal in the regular C-style format. For example, "123" for decimal, "0x7b"
+# for hex, or 0173 for octal.
+#
+# Strings must be enclosed in quotation marks if they contain spaces or are
+# empty. Otherwise, quotes are optional.
+
+# --- Data Stream Definition starts here ---
+
+# The first line identifies this as an 8192 baud data stream and defines the
+# message ID this stream uses.
+8192 0xf4
+
+# The next line defines the command to put the ECM back in normal mode. It
+# must contain the mode number followed by any additional bytes to go into
+# the ALDL request message. This line probably won't have to change, since
+# normal mode is pretty universally mode 0 with an empty message.
+0x00
+
+# Lastly, one or more transmit mode blocks. Each of these blocks defines one
+# of the ECM's transmit modes and the data to expect back after it is put in
+# that mode.
+#
+# Each transmit mode block contains a two line header followed by the data
+# descriptions.
+
+# --- Transmit block starts here ---
+
+# The first line of the header describes the command to switch to this transmit
+# mode. It must contain the mode number, followed by any additional bytes to go
+# into the ALDL request message.
+0x01 0x00
+
+# The other line of the header contains the number of data bytes to expect back
+# in the response from the ECM.
+63
+
+# The rest of the block contains the data descriptions. This is actually what
+# makes up the bulk of this file.
+
+# Here is the format:
+#
+# Each byte has its own line. First, a string for the name of the byte. This
+# must not have any whitespace preceeding it. Then, the byte's description.
+# Lastly, an optional formula to convert the raw value. The formula can use "+",
+# "-", "*", "/", or parentheses, and the variable "n" is used to represent the
+# raw value (see the line for "COOLDEGA" for an example).
+#
+# If the individual bits have meanings, 8 extra lines can be added. Each of
+# these lines must have a description, indented with whitespace. Optionally,
+# two more strings may follow describing the meaning of a 0 and a 1 in that
+# bit's position, otherwise "No" and "Yes" will be assumed. See the "NVMW" byte
+# below for an example of bit descriptions.
+#
+# Occasionally, a couple bits together make up one value using a lookup table.
+# For these bits, rather than putting a description, choose a table name.
+# Following that, put the column number of the lookup table each bit corresponds
+# to (starting with 0). Then, following all the regular data descriptions,
+# place the lookup table. Instructions on doing that are with the lookup tables
+# at the end of this file. See "IODPORTC" for an example.
+#
+# Finally, if two adjacent bytes have the same name except for the second having
+# a "+1" suffix (For example, "PROMIDA" and "PROMIDA+1"), they will be treated
+# as two bytes in a 16-bit value. The first byte will be most significant and
+# the second will be least (big endian). The description and optional conversion
+# formula will come from the first byte.
+
+#                                                   Formula, 0-
+#           Description                             Value, or
+# Name      or Lookup Table Name                    Table Col #     1-Value
+PROMIDA     "PROM ID word"
+PROMIDA+1   "PROM ID word"
+
+NVMW        "Non-Volatile mode word"
+            "O2 Sensor Ready flag"                  "Not Ready"     "Ready"
+            "Closed Loop Timer OK flag"             "Not OK"        "OK"
+            "Ram refresh error has occurred"
+            "Improper Shutdown flag"                "Proper"        "Improper"
+            "Hot Restart Proceeding flag"
+            "Not used"
+            "Not used"
+            "Malfunction 42 Fail flag (EST. Monitor)"
+
+DIACMW3     "Mode word for idle control"
+            "A/C on"
+            "In drive"                              "P/N"           "Drive"
+            "Conditions for C/L on RPM have been met (TPS closed and low MPH)"
+            "C/L on RPM enabled (Conditions met long enough or low RPM on A/T Veh.)"
+            "Stall saver"
+            "Power steering pressure load active"
+            "Throttle kicker has been disabled once"
+            "Idle RPM to high (Sign)"
+
+ISSPMP      "IAC present motor position (in steps)"
+
+MALFFLG1    "Malfunction flag word 1"
+            "Code 21: Throttle position high"
+            "Code 19: Not used"
+            "Code 18: Not used"
+            "Code 17: Not used"
+            "Code 16: 2002 PPM veh. speed sensor failure"
+            "Code 15: Coolant sensor low temperature"
+            "Code 14: Coolant sensor high temperature"
+            "Code 13: Oxygen sensor"
+
+MALFFLG2    "Malfunction flag word 2"
+            "Code 29: Not used"
+            "Code 28: Pressure switch manifold"
+            "Code 27: Not used"
+            "Code 26: Not used"
+            "Code 25: MAT sensor high"
+            "Code 24: Vehicle speed sensor"
+            "Code 23: MAT sensor low"
+            "Code 22: Throttle position low"
+
+MALFFLG3    "Malfunction flag word 3"
+            "Code 38: Brake off"
+            "Code 37: Brake on"
+            "Code 36: IAC throttle kicker failure"
+            "Code 35: IAC failure"
+            "Code 34: MAP sensor low"
+            "Code 33: MAP sensor high"
+            "Code 32: EGR failure"
+            "Code 31: Governor failure"
+
+MALFFLG4    "Malfunction flag word 4"
+            "Code 47: Not used"
+            "Code 46: VATS failure"
+            "Code 45: Oxygen sensor rich"
+            "Code 44: Oxygen sensor lean"
+            "Code 43: ESC failure"
+            "Code 42: EST. monitor"
+            "Code 41: 1x (cam pulse) sensor failure"
+            "Code 39: TCC off"
+
+MALFFLG5    "Malfunction flag word 5"
+            "Code 56: Not used"
+            "Code 55: ADU error"
+            "Code 54: Fuel pump relay malfunction"
+            "Code 53: System voltage high"
+            "Code 52: System voltage high-long test"
+            "Code 51: PROM error"
+            "Code 49: Not used"
+            "Code 48: Not used"
+
+ISDSMP      "IAC desired motor position (in steps)"
+
+DIACMW1     "Idle air control non-volatile mode word"
+            "Motor reset in progress"
+            "First driveaway flag for IAC kickdown logic"   "IACV cold offset has not been kicked down this start"  "IACV cold offset has been kicked down this start"
+            "Reset requested"                       "Yes"           "No"
+            "Not used"
+            "A stable idle with warm engine has occurred this run cycle - A/C off in drive"
+            "A stable idle with warm engine has occurred this run cycle - A/C on in drive"
+            "First pass of malfunction 36 has failed"
+            "Not used"
+
+DIACMW2     "Idle air control non-volatile mode word"
+            "Motor direction"                       "Retract"       "Extend"
+            "Not used"
+            "Coil A state"
+            "Coil B state"
+            "Stepper motor on/off status"           "Off"           "On"
+            "Not used"
+            "Not used"
+            "Not used"
+
+DIACMW4     "Mode word for idle control"
+            "ETC Once flag"                         "Special IACB open loop cold ENG modifiers are disabled"    "Special IACB open loop cold ENG modifiers are enabled"
+            "ETC * K97_EDP"
+            "Throttle kicker active"
+            "Throttle kicker disable requested"
+            "Throttle kicker barometer diable request"
+            "Part 2 of diagnostic test to be run"
+            "Prop limiting authority being exercised"
+            "Add/subtract derivative term to GPSFLOW"   "Subtract"  "Add"
+
+COOLDEGA    "Normalized engine temperature (in deg. F)" "1.35 * n - 40"
+
+ADBAT       "Battery voltage"                       "n / 10"
+
+ADTHROT     "Throttle position A/D value (0-5)"     "n * 5 / 256"
+
+ADMAP       "Manifold pressure (in kpa)"            "(n + 28.06) / 2.71"
+
+ADO2A       "Oxygen sensor variable (in mV)"        "4.42 * n"
+
+MWAF        "Air fuel mode word"
+            "PE Delay Time Complete flag"
+            "VATS frequency test passed"
+            "BL. Address Change flag"               "No change"     "Change"
+            "Delay BLM update"                      "No"        "BL addr change"
+            "DE flag"                               "DE inactive"   "DE active"
+            "PE flag"                               "PE inactive"   "PE active"
+            "AE flag"                               "AE inactive"   "AE active"
+            "Deliver Asynch. Pulse flag"
+
+SDMW        "Serial data mode word"
+            "In mode 10 of ALDL (MSG ID=0xf5)"
+            "In mode 10 of ALDL (MSG ID=0xf4)"
+            "Transmission diagnostics disabled"
+            "Not used"
+            "Not used"
+            "Transmit overrun has occurred"
+            "Transmission in progress"
+            "Second byte transmission pending"
+
+MWBG        "Minor Loop Mode flag"
+            "Factory test entered"
+            "AE Clamp flag"                     "Clamp inactive" "Clamp active"
+            "Skip Malfunction 42 due to ALDL"
+            "First REF flag"
+            "Ignition off"
+            "High MAT conditions observed"
+            "First Good M42A flag"
+            "Lock-in malfunction 42A"               "Not locked in" "Locked in"
+
+MW1         "Minor mode word 1"
+            "Advance flag"                          "Advance"       "Retard"
+            "Check Engine Light Delay flag"
+            "Loop ran over 6.25 msec"
+            "Open TPS VE flag"                      "Not open"      "Open"
+            "Run Fuel flag"                         "Not running"   "Running"
+            "VE INT Reset flag"                     "No reset"      "Reset"
+            "Major loop EST monitor enable"
+            "Engine Running flag"                   "Not running"   "Running"
+
+MW2         "Minor loop mode word 2"
+            "Synchronous MAP sensor reads in effect"
+            "O/L Idle flag for air switch engage at idle"
+            "Reference pulse occurred"
+            "Diagnostic switch in factory test position"
+            "Diagnostic switch in diagnostic position"
+            "REF pulse has occurred"
+            "Idle spark enabled"
+            "Idle flag"
+
+IODPORTC    "I/O port C"
+            "A/C request"
+            "Brake switch"              "Brake not pressed" "Brake pressed"
+            "PRNDL"                                 0
+            "PRNDL"                                 1
+            "PRNDL"                                 2
+            "Not used"
+            "Not used"
+            "Four wheel drive low"                  "Off"           "On"
+
+CLCCMW      "Major loop mode word 1"
+            "Synchronous AE flag"                   "Not synch AE"  "Synch AE"
+            "Slow Rich/Lean flag"                   "Lean"          "Rich"
+            "Air management on"                     "Off"           "On"
+            "Deceleration Fuel Cut-Off flag"        "DFCO Off"      "DFCO On"
+            "Overspeed fuel shutoff"                "Inactive"      "Active"
+            "Decel. Fuel Cut-Off IAC Fast Filtered flag"    "Off"   "On"
+            "Non-volatile memory bombed"
+            "Has been in C.L. at least once since restart"
+
+ADBARO      "Raw A/D counts for barometer filter in transmission (in kpa)"  "(n + 28.06) / 2.71"
+
+LCCPMW      "TCC & AC mode word"
+            "Not used"
+            "Spk. correction due to MAT is negative"
+            "Not used"
+            "A/C AE enabled"
+            "ACPSCT flag (A/C on)"
+            "Park/Neutral"
+            "Not used"
+            "CCP solenoid energized"
+
+MWAF1       "Air fuel mode word 1"
+            "Decel. Fuel Cut-Off TPS AE flag"
+            "Learn Control Enable flag"             "Disabled"      "Enabled"
+            "Low battery"
+            "A/F Decay INT Done flag for cold park to drive"
+            "Asynchronous pulse flag"
+            "Closed loop for O/L idle condition"
+            "Rich/Lean flag"                        "Lean"          "Rich"
+            "Closed loop flag"                      "Not closed"    "Closed"
+
+TCCMODE     "TCC mode word flags"
+            "TCC is being forced off"
+            "TCC enable solenoid valid"
+            "Low threshold for COPETCC selected"
+            "Use hysteresis for vehicle speed"
+            "TCC is in release mode slipping"
+            "TCC in in lock-adjust mode"
+            "TCC is being applied"
+            "Negative slip recently prevents apply"
+
+FILTMPH     "Filtered MPH variable"
+
+IODPORTB    "Solenoid combination for digital EGR"
+            "Shift"                                 0
+            "Shift"                                 1
+            "IAC coil A"
+            "IAC coil B"
+            "IAC enable"
+            "Force motor enable"
+            "REF IRQ CLR"
+            "M/CLR"
+
+PPSWVLT     "Battery voltage from PPSW"             "n / 10"
+
+NTRPMX      "RPM variable"                          "n * 25"
+
+OLDRFPER    "Last minor loop reference period from ECU (in msec)"   "n / 65.536"
+OLDRFPER+1  "Last minor loop reference period from ECU (in msec)"
+
+EGRDC       "EGR Duty Cycle (in %)"                 "n / 2.56"
+
+MW3         "Miscellaneous mode word"
+            "CPI/FPI Single Fire flag"      "Not single fire"   "Single fire"
+            "Single fire first time"
+            "Refresh ram in background"
+            "Powerdown in progress"
+            "High battery voltage"
+            "Decel. Fuel Cut-Off Spark Filter flag"
+            "Start-Up Spark Filter flag"            "Not done"      "Done"
+            "Transition flag"       "Transition inactive"   "Transition active"
+
+TIMEENG     "Engine running time (in sec)"
+TIMEENG+1   "Engine running time (in sec)"
+
+DESSPD      "Desired idle RPM"                      "n * 12.5"
+
+NDTHRPOS    "Throttle position for engine (in %)"   "n / 2.56"
+
+MW4         "Mode word 4"
+            "High ESC Activity flag"
+            "Zero Activity flag"
+            "Block Learn Closed Throttle Position flag"     "Throttle not closed"   "Throttle closed"
+            "Variable tuning control enabled"
+            "A/C disabled due to high RPM"
+            "A/C anticipated to be on"
+            "Converter overtemp detected"
+            "Quasi closed loop enabled"
+
+MW5         "Mode word 5"
+            "Actual engine speed over desired speed"
+            "Delatch active"
+            "Shift light on"
+            "High RPM indicated by transmission abuse logic"
+            "Power steering cramp sag/stall saver active"
+            "A-Injectors Fired at First Ref. Pulse flag"
+            "Single fire alt exit is desired"
+            "Not used"
+
+SAREFFNL    "Final value of SAREF (in degrees)"     "n * 90 / 256"
+SAREFFNL+1  "Final value of SAREF (in degrees)"
+
+PA2OLD      "ECU PA2 counter value from last minor loop"
+PA2OLD+1    "ECU PA2 counter value from last minor loop"
+
+INT         "Closed loop integrator value"
+
+DESTPS      "Desired governing TPS value to be output (in %)"   "n / 2.56"
+
+ALDLCNTR    "ALDL rich/lean change counter"
+
+LEGRMW      "EGR & spark mode word"
+            "EGR Diagnostic INT Reset flag"
+            "Burst knock retard active"
+            "EGR HI VAC Hysteresis flag"
+            "AE First Time flag"
+            "EGR MAP Hysteresis flag"
+            "EGR TPS Hysteresis flag"
+            "EGR MPH Hysteresis flag"
+            "EGR on condition"
+
+GOVMW       "Electronic governor mode word"
+            "Currently in RPM governing mode"
+            "Governor lead mode anticipating RPM governing"
+            "RPM Overspeed flag"                    "No overspeed"  "Overspeed"
+            "Governor over speed light on"
+            "RPM lead TPS return mode"
+            "Not used"
+            "MPH Overspeed flag"                    "No overspeed"  "Overspeed"
+            "Currently in MPH governing mode"
+
+BLMCELL     "Block learn multiplier cell"
+
+BLM         "Block learn multiplier"
+
+NOCKRTD     "Knock retard (in degrees)"             "n * 45 / 256"
+
+BPW         "Base pulse width (in msec)"            "n / 65.536"
+BPW+1       "Base pulse width (in msec)"
+
+DSEGRPOS    "Desired EGR command (in %)"            "n / 2.56"
+
+ACEGRPOS    "Linear EGR actual pintle position (in %)"  "n / 2.56"
+
+ADEGRP      "Linear EGR pintle position raw A/D counts"
+
+PURGEDC     "Purge duty cycle value (in %)"         "n / 2.56"
+
+MATDEGA     "Non-defaulted MAT (in deg F)"          "1.35 * n - 40"
+
+# --- Lookup tables ---
+
+# Each lookup table must have a header line containing the table name used
+# above, the number of rows in the table, and a description.
+"PRNDL"     6       "Current gear"
+# After that are all the rows. Each row must have a 0 or 1 for each bit
+# involved, followed by a string describing what that pattern of bits means.
+0   1   1   "Low"
+1   1   1   "Drive 2"
+1   1   0   "Drive 3"
+1   0   0   "Drive 4"
+1   0   1   "Park/Neutral"
+0   0   1   "Reverse"
+
+"Shift"     4       "Shifted gear"
+0   0   "3rd"
+1   0   "4th"
+0   1   "2nd"
+1   1   "1st"
+
+# --- Transmit block ends here ---
+
+# If this data stream had more than one transmit mode, the next one would go
+# here. Everything between the "--- Transmit block starts here ---" and
+# "--- Transmit block ends here ---" tags must be repeated for each transmit
+# mode.
