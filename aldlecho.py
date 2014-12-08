@@ -182,10 +182,13 @@ def main(serial_port):
         s.close()
 
 if __name__ == "__main__":
-    if "--help" in sys.argv:
-        print("Usage: {} {{<serial_port> | --help}}".format(sys.argv[0]),
-                file=sys.stderr)
-        sys.exit(0)
+    ap = argparse.ArgumentParser()
+    ap.add_argument("port", help="The serial port to use (e.g. COM1, /dev/ttyS0)")
+
+    #if "--help" in sys.argv:
+    #    print("Usage: {} {{<serial_port> | --help}}".format(sys.argv[0]),
+    #            file=sys.stderr)
+    #    sys.exit(0)
 
     try:
         main(sys.argv[1])
