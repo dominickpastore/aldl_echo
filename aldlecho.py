@@ -42,6 +42,7 @@
 # b) the message length (and maybe c) the mode)
 
 import sys
+import argparse
 from time import sleep
 #from collections import OrderedDict
 import serial
@@ -140,27 +141,29 @@ def print_formatted(msg):
 # This function should be called with an open serial object. It starts with
 # the actual communication and echoing.
 def parse_stream(s):
-    #s.write(b'\xf4\x57\x01\x00\xb3')
-    message_send(s, 0xf4, 0x01, b'\x00')
+    #message_send(s, 0xf4, 0x01, b'\x00')
     #message_send(s, 0xf5, 0x01, b'\x00')
     #message_send(s, 0xf5, 0x01, b'\x01')
 
     try:
         while True:
             #sleep(1)
-            #message_send(s, 0xf4, 0x01, b'\x00')
-            #print(message_recv(s))
-
-            #sleep(1)
-            #message_send(s, 0xf5, 0x01, b'\x00')
-            #print(message_recv(s))
-
-            #sleep(1)
-            #message_send(s, 0xf5, 0x01, b'\x01')
-
+            message_send(s, 0xf4, 0x01, b'\x00')
             new_msg = message_recv(s)
             print("\n### New Message ###")
             print_formatted(new_msg)
+
+            #sleep(1)
+            #message_send(s, 0xf5, 0x01, b'\x00')
+            #new_msg = message_recv(s)
+            #print("\n### New Message ###")
+            #print_formatted(new_msg)
+
+            #sleep(1)
+            #message_send(s, 0xf5, 0x01, b'\x01')
+            #new_msg = message_recv(s)
+            #print("\n### New Message ###")
+            #print_formatted(new_msg)
     except KeyboardInterrupt:
         print("Stopping...", file=sys.stderr)
 
