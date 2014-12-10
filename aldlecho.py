@@ -171,9 +171,11 @@ def parse_stream(s):
     message_send(s, 0xf4, 0x00, b'')
     #message_send(s, 0xf5, 0x00, b'')
 
-def main(serial_port):
+def main(args):
+    #TODO read args.data_stream
+
     try:
-        s = serial.Serial(serial_port, 8192)
+        s = serial.Serial(args.port, 8192)
     except SerialException as e:
         print("Error: {}".format(e.strerror))
         sys.exit(1)
@@ -182,17 +184,16 @@ def main(serial_port):
         s.close()
 
 if __name__ == "__main__":
-    ap = argparse.ArgumentParser()
-    ap.add_argument("port", help="The serial port to use (e.g. COM1, /dev/ttyS0)")
+    ap = argparse.ArgumentParser(
+            description="Echo data parsed from the ALDL port",
+            epilog="See the README for full documentation.")
+    ap.add_argument("-v", "--version", action="version", version="%(prog)s 1.0")
+    ap.add_argument("port",
+            help="The serial port to use (e.g. COM1, /dev/ttyACM0)")
+    ap.add_argument("data_stream", nargs='+', type=argparse.FileType('r'),
+            help="One or more data stream definition files")
 
-    #if "--help" in sys.argv:
-    #    print("Usage: {} {{<serial_port> | --help}}".format(sys.argv[0]),
-    #            file=sys.stderr)
-    #    sys.exit(0)
 
-    try:
-        main(sys.argv[1])
-    except IndexError:
-        print("Usage: {} {{<serial_port> | --help}}".format(sys.argv[0]),
-                file=sys.stderr)
-        sys.exit(2)
+    args = ap.parse_args()
+
+    main(args)
