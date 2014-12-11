@@ -82,10 +82,6 @@ transmit_mode_cmds = []
 #    ... ]
 transmit_mode_data = dict()
 
-#A217 = OrderedDict()
-#A217["PROMIDA"] = "FIRST PROM I.D. WORD (MSB)"
-#A217["PROMIDA+1"] = "SECOND PROM I.D. WORD (LSB)"
-
 #### Data parsing and formatting ###############################################
 
 def parse_data_stream_defn(f):
@@ -155,7 +151,7 @@ def parse_data_stream_defn(f):
             elif data_count == None:
                 data_count = int(strings[0])
                 transmit_mode_data_key.append((msg_id, msg_mode, data_count))
-                transmit_mode_data_val.append(
+                transmit_mode_data_val.append(List())
 
             else:
                 #TODO parse a data byte/bit line and increment byte/bit_num
