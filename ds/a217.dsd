@@ -11,7 +11,8 @@
 # for hex, or 0173 for octal.
 #
 # Strings must be enclosed in quotation marks if they contain spaces or are
-# empty. Otherwise, quotes are optional.
+# empty. Otherwise, quotes are optional. Note that double quotes must be used,
+# not single. Double quotes cannot be part of a string.
 
 # --- Data Stream Definition starts here ---
 

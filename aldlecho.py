@@ -26,7 +26,6 @@
 
 #TODO
 #Use getopt
-#Add options for help and version
 #Make it read from a definition file
 
 #TODO definition file
@@ -44,17 +43,152 @@
 import sys
 import argparse
 from time import sleep
-#from collections import OrderedDict
+from collections import OrderedDict
 import serial
+
+#### Global variables ##########################################################
+
+# A list of tuples (id, mode, message) containing commands to put the ECM back
+#in normal mode. There may be more than one if multiple data stream definitions
+# are used.
+normal_mode_cmds = []
+
+# A list of tuples (id, mode, message) containing commands that will put the ECM
+# in various transmit modes. There will be more than one if multiple data stream
+# definitions are used. Also, some data streams may specify mutliple transmit
+# modes alone.
+transmit_mode_cmds = []
+
+# A dictionary containing the transmit modes the ECM can be in. This dict will
+# contain the bulk of the information from the data stream definitions.
+# The keys will be tuples containing the id, mode, and message length. When an
+# incoming message arrives, these fields will be used to look up the data format
+# to parse it as.
+# Each value will be a list of tuples. Each tuple corresponds to one byte of
+# data. Here is roughly what this list should look like:
+#  [ ("BYTENAME", 1, "English description of byte", None),
+#    ("BYTENAME2", 1, "Description of byte with conversion", "n * 5 / 256"),
+#    ("WORDNAME3", 2, "Description of 16-bit value", None),
+#    ("BYTEFLAG4", 1, "Description of byte with flag bits",
+#      ( ("Description of flag bit 0", "Value if 0", "Value if 1")
+#        ("Description of flag bit 1, uses default yes/no values", None, None)
+#        ("Description of flag bit 0", "Value if 0", "Value if 1")
+#        ("Description of flag bit 0", "Value if 0", "Value if 1")
+#        ("Description of flag bit 0", "Value if 0", "Value if 1")
+#        ("Description of flag bit 0", "Value if 0", "Value if 1")
+#        ("Description of flag bit 0", "Value if 0", "Value if 1")
+#        ("Description of flag bit 0", "Value if 0", "Value if 1")
+#        ("Description of flag bit 0", "Value if 0", "Value if 1") ) )
+#    ... ]
+transmit_mode_data = dict()
 
 #A217 = OrderedDict()
 #A217["PROMIDA"] = "FIRST PROM I.D. WORD (MSB)"
 #A217["PROMIDA+1"] = "SECOND PROM I.D. WORD (LSB)"
 
-# From here on, "s" is always the serial object for the ALDL link.
+#### Data parsing and formatting ###############################################
+
+def parse_data_stream_defn(f):
+    global normal_mode_cmds
+    global transmit_mode_cmds
+    global transmit_mode_data
+
+    # Some state variables
+    msg_id = None
+    have_normal_cmd = False
+    msg_mode = None
+    data_count = None
+    byte_num = 0
+    bit_num = 0
+
+    # To store our data until we add it to the globals above
+    normal_mode_cmd = None
+    transmit_mode_cmd = []
+    transmit_mode_data_key = []
+    transmit_mode_data_val = []
+
+    try:
+        for line in f:
+            # Ignore comments and empty lines
+            line = line.strip()
+            if line == '':
+                continue
+
+            # Tokenize strings out (not 100% trivial since quotes are optional)
+            strings = []
+            while line != '':
+                if line[0] != '"':
+                    # Take off a word and add it
+                    split_line = line.split(maxsplit=1)
+                    strings.append(split_line[0])
+                    try:
+                        line = split_line[1]
+                    except IndexError:
+                        line = ''
+                else:
+                    # Take off everything until the next quotes and add it
+                    line = line[1:]
+                    # Let's only match quotes followed by a space. Be a little
+                    # flexible with what we accept.
+                    string, sep, line = line.partition('" ')
+                    strings.append(string)
+
+            # Parse data out from here until end of for loop
+            if msg_id == None:
+                # Verify it's an 8192 baud format
+                if int(strings[0]) != 8192:
+                    #TODO raise exception
+                    print("Parse error", file=sys.stderr)
+                msg_id = int(strings[1])
+                have_id = True
+
+            elif !have_normal_cmd:
+                normal_mode_cmd = (msg_id, int(strings[0]),
+                    bytes([int(x) for x in strings[1:]]))
+                have_normal_cmd = True
+                
+            elif msg_mode == None:
+                msg_mode = int(strings[0])
+                transmit_mode_cmd.append((msg_id, msg_mode,
+                    bytes([int(x) for x in strings[1:]])))
+
+            elif data_count == None:
+                data_count = int(strings[0])
+                transmit_mode_data_key.append((msg_id, msg_mode, data_count))
+                transmit_mode_data_val.append(
+
+            else:
+                #TODO parse a data byte/bit line and increment byte/bit_num
+                #and set bit_num to zero as appropriate
+                
+                #TODO set have_transmit_cmd to False and have_data_count to
+                #None after finished reading a transmit block. Not 100% sure
+                #how because when the last byte is encountered, there may still
+                #be bits after it.
+                
+    except ValueError as e:
+        #TODO raise exception
+        print("Parse error", file=sys.stderr)
+    except IndexError as e:
+        #TODO raise exception
+        print("Parse error", file=sys.stderr)
+    finally:
+        f.close()
+
 def parse_data(msg_body):
     pass
 
+def print_formatted(msg):
+    print("ID:    {:#04x}".format(msg[0]))
+    print("Mode:  {:#04x}".format(msg[1]))
+    print("Body:")
+    for i in range(len(msg[2])):
+        print("   {0:3d}:  {1:#04x}  {2:04b} {3:04b}  {1:3d}".format(i,
+            msg[2][i], msg[2][i] >> 4, msg[2][i] >> 0x0f))
+
+#### Serial interface ##########################################################
+
+# s is the serial object
 def message_recv(s):
     """Wait for a valid message, then return its contents
 
@@ -96,6 +230,7 @@ def message_recv(s):
         else:
             return (msg_id, msg_mode, msg_body)
 
+# s is the serial object
 def message_send(s, msg_id, msg_mode, msg_body):
     """Send a message to the ECM.
 
@@ -130,17 +265,22 @@ def message_send(s, msg_id, msg_mode, msg_body):
     #DEBUG
     #print("@@@ 1", repr(msg), file=sys.stderr)
 
-def print_formatted(msg):
-    print("ID:    {:#04x}".format(msg[0]))
-    print("Mode:  {:#04x}".format(msg[1]))
-    print("Body:")
-    for i in range(len(msg[2])):
-        print("   {0:3d}:  {1:#04x}  {2:04b} {3:04b}  {1:3d}".format(i,
-            msg[2][i], msg[2][i] >> 4, msg[2][i] >> 0x0f))
-
 # This function should be called with an open serial object. It starts with
 # the actual communication and echoing.
-def parse_stream(s):
+# s is the serial object
+def manage_stream(s):
+    # It seems this works (on 8192 baud ALDL's) by sending one command
+    # requesting a data transmit mode, which the ECM responds to with one
+    # message of data. It's not entirely clear what mode the ECM is left in
+    # after this happens, but two things seem apparent:
+    #   1) The ECM will not send any more data until another request is sent to
+    #      it.
+    #   2) It's probably a good idea to send a "switch to normal mode" command
+    #      before terminating the serial link. The Windows ALDL program that
+    #      I analyzed did this, and the normal mode command must exist for some
+    #      reason, after all. Hopefully this doesn't mean there is a potential
+    #      safety risk if the program crashes before this is sent!
+
     #message_send(s, 0xf4, 0x01, b'\x00')
     #message_send(s, 0xf5, 0x01, b'\x00')
     #message_send(s, 0xf5, 0x01, b'\x01')
@@ -171,8 +311,11 @@ def parse_stream(s):
     message_send(s, 0xf4, 0x00, b'')
     #message_send(s, 0xf5, 0x00, b'')
 
+#### Program startup and init ##################################################
+
 def main(args):
-    #TODO read args.data_stream
+    for f in args.data_stream:
+        parse_data_stream_defn(f)
 
     try:
         s = serial.Serial(args.port, 8192)
@@ -180,7 +323,7 @@ def main(args):
         print("Error: {}".format(e.strerror))
         sys.exit(1)
     else:
-        parse_stream(s)
+        manage_stream(s)
         s.close()
 
 if __name__ == "__main__":
