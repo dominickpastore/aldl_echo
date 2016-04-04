@@ -138,7 +138,7 @@ def parse_data_stream_defn(f):
                 msg_id = int(strings[1])
                 have_id = True
 
-            elif !have_normal_cmd:
+            elif not have_normal_cmd:
                 normal_mode_cmd = (msg_id, int(strings[0]),
                     bytes([int(x) for x in strings[1:]]))
                 have_normal_cmd = True
@@ -154,6 +154,7 @@ def parse_data_stream_defn(f):
                 transmit_mode_data_val.append(List())
 
             else:
+                pass
                 #TODO parse a data byte/bit line and increment byte/bit_num
                 #and set bit_num to zero as appropriate
                 
@@ -315,7 +316,7 @@ def main(args):
 
     try:
         s = serial.Serial(args.port, 8192)
-    except SerialException as e:
+    except serial.SerialException as e:
         print("Error: {}".format(e.strerror))
         sys.exit(1)
     else:
