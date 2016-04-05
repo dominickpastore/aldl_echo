@@ -104,7 +104,9 @@ def parse_data_stream_defn(f):
     transmit_mode_data_val = []
 
     try:
+        line_num = 0
         for line in f:
+            line_num += 1
             # Ignore comments and empty lines
             line = line.strip()
             if line == '':
@@ -134,7 +136,7 @@ def parse_data_stream_defn(f):
                 # Verify it's an 8192 baud format
                 if int(strings[0]) != 8192:
                     #TODO raise exception
-                    print("Parse error", file=sys.stderr)
+                    print("Parse error (bad baud) line " + str(line_num), file=sys.stderr)
                 msg_id = int(strings[1])
                 have_id = True
 
@@ -165,10 +167,10 @@ def parse_data_stream_defn(f):
                 
     except ValueError as e:
         #TODO raise exception
-        print("Parse error", file=sys.stderr)
+        print("Parse error (ValueError) line " + str(line_num), file=sys.stderr)
     except IndexError as e:
         #TODO raise exception
-        print("Parse error", file=sys.stderr)
+        print("Parse error (IndexError) line " + str(line_num), file=sys.stderr)
     finally:
         f.close()
 
