@@ -111,6 +111,8 @@ def parse_data_stream_defn(f):
             line = line.strip()
             if line == '':
                 continue
+            elif line[0] == "#":
+                continue
 
             # Tokenize strings out (not 100% trivial since quotes are optional)
             strings = []
